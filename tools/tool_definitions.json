@@ -1,0 +1,28 @@
+{
+  "tools": [
+    {
+      "name": "sport_tool",
+      "description": "Provides information about sports.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sport": { "type": "string", "description": "The sport of interest" },
+          "question": { "type": "string", "description": "The question about the sport" }
+        },
+        "required": ["sport", "question"]
+      }
+    },
+    {
+      "name": "geography_tool",
+      "description": "Provides information about geography",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string", "description": "The place to get information about" },
+          "fact": { "type": "string", "description": "The fact you want to know (e.g. population)" }
+        },
+        "required": ["location", "fact"]
+      }
+    }
+  ]
+}
