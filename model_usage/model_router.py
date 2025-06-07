@@ -20,7 +20,7 @@ class ModelRouter:
                     base_url = config.get("model", "base_url")
                     api_key_env = config.get("model", "api_key_env")
                     model_id = config.get("model", "model_name")
-                    api_key = api_key_env
+                    api_key = os.getenv(api_key_env)
                     with open(prompt_path, "r", encoding="utf-8") as f:
                         prompt = f.read()
                     self.models[model_name] = {
