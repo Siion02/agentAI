@@ -1,3 +1,5 @@
+# Complex main with tool requests to the LLM model.
+
 import json
 from model_usage.model_router import ModelRouter
 from tools import tool_implementations
@@ -14,7 +16,6 @@ def main():
     user_prompt = "What is the capital of Spain"
     preferred_model = "llama3"
 
-    # Assuming you have access to the base_prompt (you can get it from the router)
     client, model_id, base_prompt = router.get_client(preferred_model)
 
     messages = [

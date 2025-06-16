@@ -1,6 +1,6 @@
 import os
 import configparser
-from openai import OpenAI  # Usa openai api compatible client
+from openai import OpenAI
 
 class ModelRouter:
     def __init__(self, models_path="model_usage/models"):
@@ -50,4 +50,3 @@ class ModelRouter:
 
         )
         return response
-
