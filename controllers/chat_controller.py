@@ -27,5 +27,5 @@ async def update_chat(chat_id: str, data: dict):
     return response
 
 @router.post("/chat/continue")
-async def continue_chat(chat_id: str, message: str, current_user = Depends(get_current_user)):
-    return await service_manager.continue_chat(chat_id, message, current_user["id"])
+async def continue_chat(chat_id: str, message: str):
+    return await service_manager.continue_chat(chat_id, message)

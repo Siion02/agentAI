@@ -1,3 +1,4 @@
+from model_usage.model_router import ModelRouter
 from models.chat import Chat
 from db import crud
 from uuid import uuid4
@@ -7,7 +8,7 @@ async def create_chat(data: dict):
     chat = Chat(
         id=str(uuid4()),
         user_id=data["user_id"],
-        messages=data["messages"],
+        messages=data.get("messages", []),
         model=data["model"],
         date=datetime.utcnow()
     )
@@ -28,18 +29,23 @@ async def update_chat(chat_id: str, data: dict):
     updated = await crud.update_chat(chat_id, data)
     return {"message": "Chat updated" if updated else "Chat not found or data unchanged"}
 
-async def continue_chat(chat_id: str, message: str, user_id: str):
+async def continue_chat(chat_id: str, message: str):
     chat = await crud.get_chat_by_id(chat_id)
     if not chat:
         return {"error": "Chat not found"}
 
-    messages = chat["messages"]
-    messages.append({"role": "user", "content": message})
+    router = ModelRouter()
+    preferred_model = "llama3"
 
-    #response = await model_router.chat_with_model(messages)
-    response = 0 # while no calls at LLM model
+    recent_messages = chat["messages"][-5:]
+    recent_messages.append({"role": "user", "content": message})
 
-    messages.append({"role": "assistant", "content": response})
-    await crud.update_chat(chat_id, {"messages": messages})
+    print("Calling LLM ...")
+    response = router.route(preferred_model=preferred_model, messages=recent_messages).choices[0].message.content
+
+    #message = response.choices[0].message
+
+    recent_messages.append({"role": "assistant", "content": response})
+    await crud.update_chat(chat_id, {"messages": recent_messages})
 
     return {"response": response}

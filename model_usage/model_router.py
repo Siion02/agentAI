@@ -37,16 +37,15 @@ class ModelRouter:
         client = OpenAI(base_url=config["base_url"], api_key=config["api_key"])
         return client, config["model_id"], config["prompt"]
 
-    def route(self, user_prompt: str, preferred_model: str = None, tools: list = None, messages: list = None):
+    def route(self, preferred_model: str = None, tools: list = None, messages: list = None):
         model_name = preferred_model
         client, model_id, base_prompt = self.get_client(model_name)
 
-        print(messages)
+        #print(messages)
 
         response = client.chat.completions.create(
             model=model_id,
             messages=messages,
             tools=tools,
-
         )
         return response
