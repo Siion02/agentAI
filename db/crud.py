@@ -27,7 +27,6 @@ async def update_user(user_id: str, data: dict):
     )
     return result.modified_count
 
-
 async def delete_user(user_id: str):
     result = await db.users.delete_one({"_id": ObjectId(user_id)})
     return result.deleted_count
@@ -91,5 +90,30 @@ async def delete_chat(chat_id: str):
 async def update_chat(chat_id: str, data: dict):
     result = await db.chats.update_one({"_id": ObjectId(chat_id)}, {"$set": data})
     return result.modified_count
+
+# endregion
+
+# region Embeddings
+
+async def load_embeddings():
+    return await db.memory_chunks.find({}).to_list(length=None)
+
+async def save_chunk(chunk_data: dict):
+    await db.memory_chunks.insert_one(chunk_data)
+
+async def get_memory_chunks_by_ids(chunk_ids: list[str]) -> list[dict]:
+    return await db.memory_chunks.find({"_id": {"$in": chunk_ids}}).to_list(length=len(chunk_ids))
+
+async def get_card_chunks_by_ids(chunk_ids: list[str]) -> list[dict]:
+    return await db["memory_chunks"].find({
+        "_id": {"$in": chunk_ids},
+        "metadata.source": "card"
+    }).to_list(length=len(chunk_ids))
+
+async def get_chunks_by_conversation(chunk_ids: list[str], id_conversation: str) -> list[dict]:
+    return await db["memory_chunks"].find({
+        "_id": {"$in": chunk_ids},
+        "id_conversation": id_conversation
+    }).to_list(length=len(chunk_ids))
 
 # endregion
