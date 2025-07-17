@@ -1,6 +1,8 @@
+import json
 import os
 import configparser
 from openai import OpenAI
+from tools.tool_implementations import call_tool, inject_tool_args, TOOL_ARGUMENT_INJECTIONS
 
 class ModelRouter:
     def __init__(self, models_path="model_usage/models"):
@@ -37,15 +39,43 @@ class ModelRouter:
         client = OpenAI(base_url=config["base_url"], api_key=config["api_key"])
         return client, config["model_id"], config["prompt"]
 
-    def route(self, preferred_model: str = None, tools: list = None, messages: list = None):
+    async def route(
+            self,
+            preferred_model: str = None,
+            tools: list = None,
+            messages: list = None,
+            injection_context: dict = None
+    ):
         model_name = preferred_model
         client, model_id, base_prompt = self.get_client(model_name)
 
-        #print(messages)
+        while True:
+            response = client.chat.completions.create(
+                model=model_id,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+            )
 
-        response = client.chat.completions.create(
-            model=model_id,
-            messages=messages,
-            tools=tools,
-        )
-        return response
+            assistant_message = response.choices[0].message
+            messages.append(assistant_message)
+
+            tool_calls = assistant_message.tool_calls
+            if not tool_calls:
+                return response  # Respuesta final del agente
+
+            for call in tool_calls:
+                tool_name = call.function.name
+                args = json.loads(call.function.arguments)
+
+                if injection_context:
+                    args = inject_tool_args(tool_name, args, injection_context)
+
+                result = await call_tool(tool_name, args)
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "name": tool_name,
+                    "content": result
+                })

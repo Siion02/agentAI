@@ -1,3 +1,5 @@
+import json
+
 from model_usage.model_router import ModelRouter
 from models.chat import Chat
 from db import crud
@@ -35,17 +37,23 @@ async def continue_chat(chat_id: str, message: str):
         return {"error": "Chat not found"}
 
     router = ModelRouter()
-    preferred_model = "llama3"
+    preferred_model = "gpt-3.5-turbo"
 
     recent_messages = chat["messages"][-5:]
     recent_messages.append({"role": "user", "content": message})
 
+    with open("tools/tool_definitions.json") as f:
+        tools = json.load(f)["tools"]
+
+    injection_context = {
+        "chat_id": chat_id,
+        "user_id": "admin"
+    }
+
     print("Calling LLM ...")
-    response = router.route(preferred_model=preferred_model, messages=recent_messages).choices[0].message.content
+    response = await router.route(preferred_model=preferred_model, tools=tools, messages=recent_messages, injection_context=injection_context)
 
-    #message = response.choices[0].message
+    #recent_messages.append({"role": "assistant", "content": response})
+    #await crud.update_chat(chat_id, {"messages": recent_messages})
 
-    recent_messages.append({"role": "assistant", "content": response})
-    await crud.update_chat(chat_id, {"messages": recent_messages})
-
-    return {"response": response}
+    return {"response": response.choices[0].message.content}
