@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 import services.chat_service as service_manager
 from db.auth.dependencies import get_current_user
 
@@ -11,6 +11,10 @@ async def create_chat(data: dict):
 @router.get("/")
 async def get_chats():
     return await service_manager.get_chats()
+
+@router.get("/{chat_id}")
+async def get_chat_by_id(chat_id: str):
+    return await service_manager.get_chat_by_id(chat_id)
 
 @router.delete("/{chat_id}")
 async def delete_chat(chat_id: str):
@@ -26,6 +30,6 @@ async def update_chat(chat_id: str, data: dict):
         raise HTTPException(status_code=404, detail=response["message"])
     return response
 
-@router.post("/chat/continue")
-async def continue_chat(chat_id: str, message: str):
+@router.post("/{chat_id}")
+async def continue_chat(chat_id: str, message: str = Body(...)):
     return await service_manager.continue_chat(chat_id, message)
