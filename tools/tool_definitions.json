@@ -1,27 +1,77 @@
 {
   "tools": [
     {
-      "name": "sport_tool",
-      "description": "Provides information about sports.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "sport": { "type": "string", "description": "The sport of interest" },
-          "question": { "type": "string", "description": "The question about the sport" }
-        },
-        "required": ["sport", "question"]
+      "type": "function",
+      "function": {
+        "name": "create_card",
+        "description": "Creates a new teaching card with structured content and stores it in the system.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "chat_id": { "type": "string" },
+                "user_id": { "type": "string" },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "objectives": { "type": "string" },
+                    "tools": { "type": "string" },
+                    "reflections": { "type": "string" }
+                  },
+                  "required": ["objectives", "tools", "reflections"]
+                },
+                "completeness": { "type": "number", "default": 1.0 }
+              },
+              "required": ["chat_id", "user_id", "data"]
+            }
+          },
+          "required": ["data"]
+        }
       }
     },
     {
-      "name": "geography_tool",
-      "description": "Provides information about geography",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": { "type": "string", "description": "The place to get information about" },
-          "fact": { "type": "string", "description": "The fact you want to know (e.g. population)" }
-        },
-        "required": ["location", "fact"]
+      "type": "function",
+      "function": {
+        "name": "search_memory",
+        "description": "Searches the system's vector memory for fragments similar to a user query",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string" }
+          },
+          "required": ["query"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_fichas",
+        "description": "Searches past teaching experience cards similar to a user's question or idea",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string" }
+          },
+          "required": ["query"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_conversation",
+        "description": "Searches for semantically similar content within a specific conversation's memory.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string" },
+            "id_conversation": { "type": "string" }
+          },
+          "required": ["query", "id_conversation"]
+        }
       }
     }
   ]

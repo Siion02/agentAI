@@ -1,6 +1,6 @@
 # Complex main with tool requests to the LLM model.
 
-import json
+"""import json
 from model_usage.model_router import ModelRouter
 from tools import tool_implementations
 
@@ -66,6 +66,27 @@ def main():
             print("Final LLM response:")
             print(message.content)
             break
+        """
+from fastapi import FastAPI
+from controllers.user_controller import router as user_router
+from controllers.card_controller import router as card_router
+from controllers.chat_controller import router as chat_router
+from controllers.auth_controller import router as auth_router
 
-if __name__ == "__main__":
-    main()
+from db.embeddings.faiss_client import chunk_and_store, faiss_memory, load_embeddings
+from db.embeddings.utils import embed_text
+
+app = FastAPI()
+app.include_router(user_router)
+app.include_router(card_router)
+app.include_router(chat_router)
+app.include_router(auth_router)
+
+@app.on_event("startup")
+async def startup_event():
+    await load_embeddings()
+@app.get("/")
+async def root():
+
+
+    return {"message": "TFG API funcionando"}

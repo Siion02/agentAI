@@ -1,0 +1,3 @@
+Respond accurately and thoroughly to the following user query:
+
+{user_input}
