@@ -15,6 +15,9 @@ async def create_card(data: dict):
     await crud.insert_card(card)
     return card
 
+async def get_cards_by_user_id(user_id: str):
+    return await crud.get_cards_by_user_id(user_id)
+
 async def get_cards():
     return await crud.get_cards()
 

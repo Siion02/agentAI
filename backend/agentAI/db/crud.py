@@ -6,6 +6,24 @@ from db.mongo_client import db
 from db.utils import normalize_document
 
 
+# region Masters
+
+async def get_models():
+    cursor = db.models.find({"is_inactive": "0"}) # only active models
+    models = []
+    async for model in cursor:
+        models.append(normalize_document(model))
+    return models
+
+async def get_roles():
+    cursor = db.roles.find()
+    roles = []
+    async for role in cursor:
+        roles.append(normalize_document(role))
+    return roles
+
+# endregion
+
 # region User
 
 async def insert_user(user: User):
@@ -50,9 +68,14 @@ async def get_cards():
     cursor = db.cards.find()
     cards = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
-        del doc["_id"]
-        cards.append(doc)
+        cards.append(normalize_document(doc))
+    return cards
+
+async def get_cards_by_user_id(user_id: str):
+    cursor = db.cards.find({"user_id": user_id})
+    cards = []
+    async for doc in cursor:
+        cards.append(normalize_document(doc))
     return cards
 
 async def delete_card(card_id: str):
@@ -72,15 +95,14 @@ async def insert_chat(chat: Chat):
     return result.inserted_id
 
 async def get_chat_by_id(chat_id: str):
-    return await db.chats.find_one({"_id": ObjectId(chat_id)})
+    chat = await db.chats.find_one({"_id": ObjectId(chat_id)})
+    return normalize_document(chat)
 
 async def get_chats():
     cursor = db.chats.find()
     chats = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
-        del doc["_id"]
-        chats.append(doc)
+        chats.append(normalize_document(doc))
     return chats
 
 async def delete_chat(chat_id: str):
