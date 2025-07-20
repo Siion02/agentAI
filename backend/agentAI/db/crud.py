@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from models.user import User
 from models.chat import Chat
 from models.card import Card
@@ -36,17 +38,18 @@ async def get_user_by_email(email: str):
     return await db.users.find_one({"email": email})
 
 async def get_user_by_id(user_id: str):
-    return await db.users.find_one({"_id": ObjectId(user_id)})
+    user = await db.users.find_one({"id": user_id})
+    return normalize_document(user)
 
 async def update_user(user_id: str, data: dict):
     result = await db.users.update_one(
-        {"_id": ObjectId(user_id)},
+        {"id": user_id},
         {"$set": data}
     )
     return result.modified_count
 
 async def delete_user(user_id: str):
-    result = await db.users.delete_one({"_id": ObjectId(user_id)})
+    result = await db.users.delete_one({"id": user_id})
     return result.deleted_count
 
 async def get_users():
@@ -79,11 +82,11 @@ async def get_cards_by_user_id(user_id: str):
     return cards
 
 async def delete_card(card_id: str):
-    result = await db.cards.delete_one({"_id": ObjectId(card_id)})
+    result = await db.cards.delete_one({"id": card_id})
     return result.deleted_count
 
 async def update_card(card_id: str, data: dict):
-    result = await db.cards.update_one({"_id": ObjectId(card_id)}, {"$set": data})
+    result = await db.cards.update_one({"id": card_id}, {"$set": data})
     return result.modified_count
 
 # endregion
@@ -94,9 +97,12 @@ async def insert_chat(chat: Chat):
     result = await db.chats.insert_one(chat.dict())
     return result.inserted_id
 
-async def get_chat_by_id(chat_id: str):
-    chat = await db.chats.find_one({"_id": ObjectId(chat_id)})
-    return normalize_document(chat)
+async def get_chat_by_id(chat_id: str, user_id: str):
+    chat = await db.chats.find_one({
+        "id": chat_id,
+        "user_id": user_id
+    })
+    return normalize_document(chat) if chat else None
 
 async def get_chats():
     cursor = db.chats.find()
@@ -105,12 +111,21 @@ async def get_chats():
         chats.append(normalize_document(doc))
     return chats
 
+async def get_chats_by_user_id(user_id: str):
+    cursor = db.chats.find({"user_id": user_id}).sort("modified", -1)
+    chats = []
+    async for doc in cursor:
+        chats.append(normalize_document(doc))
+    return chats
+
 async def delete_chat(chat_id: str):
-    result = await db.chats.delete_one({"_id": ObjectId(chat_id)})
+    result = await db.chats.delete_one({"id": chat_id})
     return result.deleted_count
 
 async def update_chat(chat_id: str, data: dict):
-    result = await db.chats.update_one({"_id": ObjectId(chat_id)}, {"$set": data})
+    if 'messages' in data:
+        data['modified'] = datetime.utcnow()
+    result = await db.chats.update_one({"id": chat_id}, {"$set": data})
     return result.modified_count
 
 # endregion
