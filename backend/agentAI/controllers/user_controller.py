@@ -1,11 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 import services.user_service as service_manager
+from db.auth.dependencies import get_current_user, require_admin
 
-router = APIRouter(prefix="/users", tags=["users"])
-
-@router.post("/")
-async def create_user(data: dict):
-    return await service_manager.create_user(data)
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(get_current_user)])
 
 @router.put("/{user_id}")
 async def update_usuario(user_id: str, data: dict):
@@ -22,5 +19,9 @@ async def delete_user(user_id: str):
     return response
 
 @router.get("/")
-async def get_users():
+async def get_users(current_user=Depends(require_admin)):
     return await service_manager.get_users()
+
+@router.get("/me")
+async def get_current_user_data(current_user=Depends(get_current_user)):
+    return await service_manager.get_current_user(current_user["id"])

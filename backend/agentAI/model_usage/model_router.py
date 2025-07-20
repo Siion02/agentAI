@@ -6,7 +6,9 @@ from tools.tool_implementations import call_tool, inject_tool_args, TOOL_ARGUMEN
 
 class ModelRouter:
     def __init__(self, models_path="model_usage/models"):
-        self.models_path = models_path
+        self.models_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'models')
         self.models = {}
         self.load_models()
 

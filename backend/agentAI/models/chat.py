@@ -6,6 +6,8 @@ from typing import List, Dict, Any
 class Chat(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     user_id: str
+    title: str
     messages: List[Dict[str, Any]]
     model: str
     date: datetime = Field(default_factory=datetime.utcnow)
+    modified: datetime = Field(default_factory=datetime.utcnow)

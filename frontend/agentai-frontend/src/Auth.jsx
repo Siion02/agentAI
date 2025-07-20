@@ -1,7 +1,79 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
+
+import { login, register } from './api/auth';
+import { getRoles } from './api/masters';
 
 export default function Auth() {
     const [isLogin, setIsLogin] = useState(true);
+    const navigate = useNavigate();
+    const [roles, setRoles] = useState([]);
+    const [form, setForm] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+        role: ''
+    });
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!isLogin) {
+            getRoles().then(setRoles).catch(() => setRoles([]));
+        }
+    }, [isLogin]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!form.email || !form.password || (!isLogin && (!form.first_name || !form.last_name || !form.role))) {
+            toast.error('All fields are required', {
+                position: 'top-center',
+                autoClose: 3000
+            });
+            return;
+        }
+        try {
+            if (isLogin) {
+                const { access_token } = await login(form);
+                localStorage.setItem('token', access_token);
+                toast.success('Login successful! Welcome', {
+                    position: 'top-center',
+                    autoClose: 2000
+                });
+
+                setTimeout(() => {
+                    navigate('/chat');
+                }, 2000);
+
+                //window.location.href = '/chat';
+            } else {
+                await register(form);
+                toast.success('Registration successful! Redirecting to login...', {
+                    position: 'top-center',
+                    autoClose: 3000
+                });
+                setTimeout(() => {
+                    setIsLogin(true);
+                }, 3000);
+            }
+        } catch (err) {
+            const msg = err.message || 'Unknown error';
+            toast.error(msg.includes('401') || msg.toLowerCase().includes('unauthorized')
+                ? 'Wrong email or password'
+                : msg, {
+                position: 'top-center',
+                autoClose: 3000
+            });
+        }
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-[#e8efff] font-sans px-4">
@@ -10,50 +82,60 @@ export default function Auth() {
                     {isLogin ? 'Login to AgentAI' : 'Create an Account'}
                 </h2>
 
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleSubmit}>
                     {!isLogin && (
-                        <>
-                            <div className="flex gap-4">
-                                <input
-                                    type="text"
-                                    placeholder="First name"
-                                    required
-                                    className="w-1/2 border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Last name"
-                                    required
-                                    className="w-1/2 border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                />
-                            </div>
-                        </>
+                        <div className="flex gap-4">
+                            <input
+                                name="first_name"
+                                value={form.first_name}
+                                onChange={handleChange}
+                                type="text"
+                                placeholder="First name"
+                                className="w-1/2 border p-3 rounded-lg"
+                            />
+                            <input
+                                name="last_name"
+                                value={form.last_name}
+                                onChange={handleChange}
+                                type="text"
+                                placeholder="Last name"
+                                className="w-1/2 border p-3 rounded-lg"
+                            />
+                        </div>
                     )}
                     <input
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
                         type="email"
                         placeholder="Email"
-                        required
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        className="w-full border p-3 rounded-lg"
                     />
                     <input
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
                         type="password"
                         placeholder="Password"
-                        required
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        className="w-full border p-3 rounded-lg"
                     />
                     {!isLogin && (
                         <div className="mt-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium mb-1">
                                 Role
                             </label>
                             <select
-                                required
-                                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                defaultValue=""
+                                name="role"
+                                value={form.role}
+                                onChange={handleChange}
+                                className="w-full border p-3 rounded-lg"
                             >
                                 <option value="" disabled>Select your role</option>
-                                <option value="student">Student</option>
-                                <option value="professor">Professor</option>
+                                {roles.map(role => (
+                                    <option key={role.id} value={role.name}>
+                                        {role.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     )}
@@ -64,6 +146,7 @@ export default function Auth() {
                     >
                         {isLogin ? 'Login' : 'Register'}
                     </button>
+                    {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
                 </form>
 
                 <p className="mt-6 text-center text-sm text-gray-600">
@@ -76,6 +159,7 @@ export default function Auth() {
                     </button>
                 </p>
             </div>
+            <ToastContainer />
         </div>
     );
 }

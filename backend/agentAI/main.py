@@ -77,12 +77,22 @@ from controllers.masters_controller import router as masters_router
 from db.embeddings.faiss_client import chunk_and_store, faiss_memory, load_embeddings
 from db.embeddings.utils import embed_text
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
 app.include_router(user_router)
 app.include_router(card_router)
 app.include_router(chat_router)
 app.include_router(auth_router)
 app.include_router(masters_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup_event():

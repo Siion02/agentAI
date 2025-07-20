@@ -14,8 +14,8 @@ async def register_user(data: dict):
 
     user = User(
         id=str(uuid4()),
-        name=data["name"],
-        surname=data["surname"],
+        name=data["first_name"],
+        surname=data["last_name"],
         role=data["role"],
         email=data["email"],
         password=pwd_context.hash(data["password"]),
@@ -29,5 +29,5 @@ async def login_user(data: dict):
     if not user or not pwd_context.verify(data["password"], user["password"]):
         return {"error": "Invalid email or password"}
 
-    token = create_access_token({"sub": str(user["_id"])})
+    token = create_access_token({"sub": str(user["id"])})
     return {"access_token": token, "token_type": "bearer"}
