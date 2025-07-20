@@ -72,21 +72,31 @@ from controllers.user_controller import router as user_router
 from controllers.card_controller import router as card_router
 from controllers.chat_controller import router as chat_router
 from controllers.auth_controller import router as auth_router
+from controllers.masters_controller import router as masters_router
 
 from db.embeddings.faiss_client import chunk_and_store, faiss_memory, load_embeddings
 from db.embeddings.utils import embed_text
+
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.include_router(user_router)
 app.include_router(card_router)
 app.include_router(chat_router)
 app.include_router(auth_router)
+app.include_router(masters_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup_event():
     await load_embeddings()
 @app.get("/")
 async def root():
-
-
     return {"message": "TFG API funcionando"}

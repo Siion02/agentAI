@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ChatPage from './Chat.jsx';
 import AuthPage from './Auth.jsx';
+import './index.css';
 
 export default function App() {
     return (
